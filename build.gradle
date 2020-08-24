@@ -1,7 +1,11 @@
+
 plugins {
     id 'java'
     id 'application'
+    id "com.patdouble.cucumber-jvm" version "0.19"
 }
+
+mainClassName = 'Encription'
 
 group 'org.example'
 version '1.0-SNAPSHOT'
@@ -10,8 +14,30 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+project.ext {
+    cucumberVersion = '5.6.0'
 }
 
-mainClassName = 'Encription'
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testImplementation 'io.cucumber:cucumber-java:' + cucumberVersion
+}
+
+configurations {
+    cucumberRuntime {
+        extendsFrom testImplementation
+    }
+}
+
+task cucumber() {
+    dependsOn assemble, compileTestJava
+    doLast {
+        javaexec {
+            main = "io.cucumber.core.cli.Main"
+            classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+            args = ['--plugin', 'html:reports/test-report', '--plugin', 'pretty', '--glue', 'com.stepdefinitions', 'src/test/resources']
+        }
+    }
+}
+
+
